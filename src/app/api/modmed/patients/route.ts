@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
 
     const client = await getModMedClient(session.user.id)
     const modmedPatients = await client.getPatients({
-      page: parseInt(page),
-      limit: parseInt(limit),
-      search
+      _offset: (parseInt(page) - 1) * parseInt(limit),
+      _count: parseInt(limit),
+      name: search
     })
 
     // Sync with local database

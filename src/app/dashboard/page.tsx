@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
-import EHRDashboard from '@/components/EHRDashboard'
+import EHRDashboard from '../../components/EHRDashboard'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()

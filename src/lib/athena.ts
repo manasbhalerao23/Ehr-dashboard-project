@@ -39,7 +39,7 @@ export class AthenaClient {
   }
 
   // Authentication
-  async authenticate(clientId: string, clientSecret: string): Promise<any> {
+  async authenticate(clientId: string, clientSecret: string): Promise<unknown> {
     try {
       const response = await this.client.post('/oauth2/token', {
         grant_type: 'client_credentials',
@@ -73,22 +73,22 @@ export class AthenaClient {
     offset?: number
     firstname?: string
     lastname?: string
-  }): Promise<any> {
+  }): Promise<unknown> {
     const response = await this.client.get(`/v1/${this.practiceId}/patients`, { params })
     return response.data
   }
 
-  async getPatient(patientId: string): Promise<any> {
+  async getPatient(patientId: string): Promise<unknown> {
     const response = await this.client.get(`/v1/${this.practiceId}/patients/${patientId}`)
     return response.data
   }
 
-  async createPatient(patientData: any): Promise<any> {
+  async createPatient(patientData: unknown): Promise<unknown> {
     const response = await this.client.post(`/v1/${this.practiceId}/patients`, patientData)
     return response.data
   }
 
-  async updatePatient(patientId: string, patientData: any): Promise<any> {
+  async updatePatient(patientId: string, patientData: unknown): Promise<unknown> {
     const response = await this.client.put(`/v1/${this.practiceId}/patients/${patientId}`, patientData)
     return response.data
   }
@@ -99,31 +99,31 @@ export class AthenaClient {
     startdate?: string
     enddate?: string
     patientid?: string
-  }): Promise<any> {
+  }): Promise<unknown> {
     const response = await this.client.get(`/v1/${this.practiceId}/appointments/open`, { params })
     return response.data
   }
 
-  async bookAppointment(appointmentData: any): Promise<any> {
+  async bookAppointment(appointmentData: unknown): Promise<unknown> {
     const response = await this.client.post(`/v1/${this.practiceId}/appointments/{appointmentid}/book`, appointmentData)
     return response.data
   }
 
   // Clinical Data
-  async getVitals(patientId: string, departmentId: string): Promise<any> {
+  async getVitals(patientId: string, departmentId: string): Promise<unknown> {
     const response = await this.client.get(`/v1/${this.practiceId}/patients/${patientId}/vitals`, {
       params: { departmentid: departmentId }
     })
     return response.data
   }
 
-  async recordVitals(patientId: string, vitalsData: any): Promise<any> {
+  async recordVitals(patientId: string, vitalsData: unknown): Promise<unknown> {
     const response = await this.client.post(`/v1/${this.practiceId}/patients/${patientId}/vitals`, vitalsData)
     return response.data
   }
 
   // Insurance and Eligibility
-  async checkEligibility(patientId: string, params: any): Promise<any> {
+  async checkEligibility(patientId: string, params: unknown): Promise<unknown> {
     const response = await this.client.get(`/v1/${this.practiceId}/patients/${patientId}/insurances/eligibility`, {
       params
     })

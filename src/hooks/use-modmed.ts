@@ -31,7 +31,7 @@ export function useCreatePatient() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (patientData: any) => {
+    mutationFn: async (patientData: unknown) => {
       const response = await axios.post('/api/modmed/patients', patientData)
       return response.data
     },
@@ -45,7 +45,7 @@ export function useUpdatePatient() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: unknown }) => {
       const response = await axios.put(`/api/modmed/patients/${id}`, data)
       return response.data
     },
@@ -90,7 +90,7 @@ export function useCreateAppointment() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async (appointmentData: any) => {
+    mutationFn: async (appointmentData: unknown) => {
       const response = await axios.post('/api/modmed/appointments', appointmentData)
       return response.data
     },

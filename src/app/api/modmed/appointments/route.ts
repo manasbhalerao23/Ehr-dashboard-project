@@ -10,15 +10,15 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const patientId = searchParams.get('patientId')
-    const providerId = searchParams.get('providerId')
-    const date = searchParams.get('date')
-    const status = searchParams.get('status')
+    const patientId = searchParams.get('patientId') ?? undefined
+    const providerId = searchParams.get('providerId') ?? undefined
+    const date = searchParams.get('date') ?? undefined
+    const status = searchParams.get('status') ?? undefined
 
     const client = await getModMedClient(session.user.id)
     const appointments = await client.getAppointments({
-      patientId,
-      providerId,
+      patient: patientId,
+      practitioner: providerId,
       date,
       status
     })

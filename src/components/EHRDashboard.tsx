@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Calendar, FileText, Users, CreditCard, Settings, Bell, User, ChevronDown, Filter, Download, Upload, Heart, Activity, Pill, TestTube, Shield, Clock, DollarSign, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Edit, Trash2, Calendar, FileText, Users, CreditCard, Settings, Bell, User, Filter, Download, Upload, Heart, Activity, Pill, TestTube, Shield, Clock, DollarSign, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 
 // Types
 interface Patient {
@@ -105,7 +105,12 @@ const mockAppointments: Appointment[] = [
 ];
 
 // Components
-const Sidebar = ({ activeTab, setActiveTab }) => {
+interface SidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const navigation = [
     { id: 'dashboard', name: 'Dashboard', icon: Activity },
     { id: 'patients', name: 'Patients', icon: Users },
@@ -162,7 +167,12 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   );
 };
 
-const Header = ({ title, subtitle }) => (
+interface HeaderProps {
+  title: string;
+  subtitle?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ title, subtitle }) => (
   <div className="mb-8">
     <div className="flex justify-between items-center">
       <div>
@@ -181,7 +191,15 @@ const Header = ({ title, subtitle }) => (
   </div>
 );
 
-const StatsCard = ({ title, value, change, icon: Icon, color = 'blue' }) => {
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  change?: string;
+  icon: React.ElementType;
+  color?: 'blue' | 'green' | 'yellow' | 'red';
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon: Icon, color = 'blue' }) => {
   const colorClasses = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
@@ -209,7 +227,13 @@ const StatsCard = ({ title, value, change, icon: Icon, color = 'blue' }) => {
   );
 };
 
-const PatientTable = ({ patients, onEditPatient, onDeletePatient }) => (
+interface PatientTableProps {
+  patients: Patient[];
+  onEditPatient: (patient: Patient) => void;
+  onDeletePatient: (patientId: string) => void;
+}
+
+const PatientTable: React.FC<PatientTableProps> = ({ patients, onEditPatient, onDeletePatient }) => (
   <div className="bg-white rounded-lg shadow-sm border">
     <div className="p-6 border-b">
       <div className="flex justify-between items-center">
@@ -303,8 +327,15 @@ const PatientTable = ({ patients, onEditPatient, onDeletePatient }) => (
   </div>
 );
 
-const PatientForm = ({ patient, onSave, onCancel }) => {
-  const [formData, setFormData] = useState(patient || {
+interface PatientFormProps {
+  patient: Patient | null;
+  onSave: (patientData: Patient) => void;
+  onCancel: () => void;
+}
+
+const PatientForm: React.FC<PatientFormProps> = ({ patient, onSave, onCancel }) => {
+  // Allow formData to be a partial Patient for form editing
+  const [formData, setFormData] = useState<Partial<Patient>>(patient || {
     firstName: '',
     lastName: '',
     email: '',
@@ -318,9 +349,25 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
     }
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
-    onSave(formData);
+    // Compose a Patient object with required fields for onSave
+    if (patient) {
+      onSave({
+        ...patient,
+        ...formData,
+        id: patient.id,
+        modmedId: patient.modmedId,
+        status: patient.status,
+      });
+    } else {
+      onSave({
+        ...formData,
+        id: '', // Will be set in parent
+        modmedId: '', // Will be set in parent
+        status: 'active',
+      } as Patient);
+    }
   };
 
   return (
@@ -409,7 +456,12 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
                   value={formData.address?.street || ''}
                   onChange={(e) => setFormData({
                     ...formData, 
-                    address: { ...formData.address, street: e.target.value }
+                    address: { 
+                      street: e.target.value, 
+                      city: formData.address?.city || '', 
+                      state: formData.address?.state || '', 
+                      zip: formData.address?.zip || '' 
+                    }
                   })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -424,7 +476,12 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
                   value={formData.address?.city || ''}
                   onChange={(e) => setFormData({
                     ...formData, 
-                    address: { ...formData.address, city: e.target.value }
+                    address: { 
+                      street: formData.address?.street || '', 
+                      city: e.target.value, 
+                      state: formData.address?.state || '', 
+                      zip: formData.address?.zip || '' 
+                    }
                   })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -439,7 +496,12 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
                   value={formData.address?.state || ''}
                   onChange={(e) => setFormData({
                     ...formData, 
-                    address: { ...formData.address, state: e.target.value }
+                    address: { 
+                      street: formData.address?.street || '', 
+                      city: formData.address?.city || '', 
+                      state: e.target.value, 
+                      zip: formData.address?.zip || '' 
+                    }
                   })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -454,7 +516,12 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
                   value={formData.address?.zip || ''}
                   onChange={(e) => setFormData({
                     ...formData, 
-                    address: { ...formData.address, zip: e.target.value }
+                    address: { 
+                      street: formData.address?.street || '', 
+                      city: formData.address?.city || '', 
+                      state: formData.address?.state || '', 
+                      zip: e.target.value 
+                    }
                   })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -483,7 +550,11 @@ const PatientForm = ({ patient, onSave, onCancel }) => {
   );
 };
 
-const AppointmentScheduler = ({ appointments }) => (
+interface AppointmentSchedulerProps {
+  appointments: Appointment[];
+}
+
+const AppointmentScheduler: React.FC<AppointmentSchedulerProps> = ({ appointments }) => (
   <div className="bg-white rounded-lg shadow-sm border">
     <div className="p-6 border-b">
       <div className="flex justify-between items-center">
@@ -701,20 +772,20 @@ const EHRDashboard = () => {
   const [patients, setPatients] = useState(mockPatients);
   const [appointments] = useState(mockAppointments);
   const [showPatientForm, setShowPatientForm] = useState(false);
-  const [editingPatient, setEditingPatient] = useState(null);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
 
-  const handleEditPatient = (patient) => {
+  const handleEditPatient = (patient: Patient) => {
     setEditingPatient(patient);
     setShowPatientForm(true);
   };
 
-  const handleDeletePatient = (patientId) => {
+  const handleDeletePatient = (patientId: string) => {
     if (confirm('Are you sure you want to delete this patient?')) {
       setPatients(patients.filter(p => p.id !== patientId));
     }
   };
 
-  const handleSavePatient = (patientData) => {
+  const handleSavePatient = (patientData: Patient) => {
     if (editingPatient) {
       setPatients(patients.map(p => 
         p.id === editingPatient.id 
@@ -722,7 +793,7 @@ const EHRDashboard = () => {
           : p
       ));
     } else {
-      const newPatient = {
+      const newPatient: Patient = {
         ...patientData,
         id: Date.now().toString(),
         modmedId: `MM-${String(patients.length + 1).padStart(3, '0')}`,
@@ -862,7 +933,7 @@ const EHRDashboard = () => {
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h4 className="font-semibold text-gray-900 mb-4">Today's Schedule</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">Today&apos;s Schedule</h4>
             <div className="space-y-3">
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-600">9:00 AM - John Doe</span>
