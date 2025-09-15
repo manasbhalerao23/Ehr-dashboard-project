@@ -48,13 +48,11 @@ export class ModMedClient {
   }
 
   // Authentication with username/password
-  async authenticate(clientId: unknown, clientSecret: unknown): Promise<unknown> {
+  async authenticate(): Promise<any> {
     try {
       console.log('🔐 Authenticating with ModMed...')
       const response = await this.client.post('/oauth2/token', {
         grant_type: 'password',
-        client_id: clientId,
-        client_secret: clientSecret,
         username: this.username,
         password: this.password
       })
@@ -91,10 +89,10 @@ export class ModMedClient {
     _offset?: number
     name?: string
     identifier?: string
-  }): Promise<unknown> {
+  }): Promise<any> {
     try {
       console.log('📋 Fetching patients from ModMed...')
-      const response = await this.client.get<FhirBundle<PatientData>>('/Patient', { 
+      const response = await this.client.get('/Patient', { 
         params: {
           _count: 20,
           _format: 'json',
@@ -109,7 +107,7 @@ export class ModMedClient {
     }
   }
 
-  async getPatient(patientId: string): Promise<unknown> {
+  async getPatient(patientId: string): Promise<any> {
     try {
       const response = await this.client.get(`/Patient/${patientId}`)
       return response.data
@@ -119,7 +117,7 @@ export class ModMedClient {
     }
   }
 
-  async createPatient(patientData: PatientInput): Promise<unknown> {
+  async createPatient(patientData: any): Promise<any> {
     try {
       // Convert to FHIR format
       const fhirPatient = this.convertToFHIRPatient(patientData)
@@ -132,7 +130,7 @@ export class ModMedClient {
     }
   }
 
-  async updatePatient(patientId: string, patientData: PatientInput): Promise<unknown> {
+  async updatePatient(patientId: string, patientData: any): Promise<any> {
     try {
       const fhirPatient = this.convertToFHIRPatient(patientData)
       const response = await this.client.put(`/Patient/${patientId}`, fhirPatient)
@@ -150,7 +148,7 @@ export class ModMedClient {
     practitioner?: string
     date?: string
     status?: string
-  }): Promise<unknown> {
+  }): Promise<any> {
     try {
       const response = await this.client.get('/Appointment', { 
         params: {
@@ -166,7 +164,7 @@ export class ModMedClient {
     }
   }
 
-  async createAppointment(appointmentData: AppointmentInput): Promise<unknown> {
+  async createAppointment(appointmentData: any): Promise<any> {
     try {
       const fhirAppointment = this.convertToFHIRAppointment(appointmentData)
       const response = await this.client.post('/Appointment', fhirAppointment)
@@ -178,9 +176,9 @@ export class ModMedClient {
   }
 
   // FHIR Observation endpoints (Vital Signs)
-  async getObservations(patientId: string, category?: string): Promise<unknown> {
+  async getObservations(patientId: string, category?: string): Promise<any> {
     try {
-      const params: Record<string, string | number> = {
+      const params: any = {
         patient: patientId,
         _count: 50,
         _format: 'json'
@@ -198,7 +196,7 @@ export class ModMedClient {
     }
   }
 
-  async createObservation(observationData: ObservationInput): Promise<unknown> {
+  async createObservation(observationData: any): Promise<any> {
     try {
       const fhirObservation = this.convertToFHIRObservation(observationData)
       const response = await this.client.post('/Observation', fhirObservation)
@@ -210,7 +208,7 @@ export class ModMedClient {
   }
 
   // FHIR Condition endpoints
-  async getConditions(patientId: string): Promise<unknown> {
+  async getConditions(patientId: string): Promise<any> {
     try {
       const response = await this.client.get('/Condition', { 
         params: { 
@@ -226,7 +224,7 @@ export class ModMedClient {
   }
 
   // FHIR MedicationRequest endpoints
-  async getMedications(patientId: string): Promise<unknown> {
+  async getMedications(patientId: string): Promise<any> {
     try {
       const response = await this.client.get('/MedicationRequest', { 
         params: { 
@@ -242,7 +240,7 @@ export class ModMedClient {
   }
 
   // Helper methods to convert data to FHIR format
-  private convertToFHIRPatient(patientData: PatientInput): unknown {
+  private convertToFHIRPatient(patientData: any): any {
     return {
       resourceType: "Patient",
       name: [{
@@ -275,7 +273,7 @@ export class ModMedClient {
     }
   }
 
-  private convertToFHIRAppointment(appointmentData: AppointmentInput): unknown {
+  private convertToFHIRAppointment(appointmentData: any): any {
     return {
       resourceType: "Appointment",
       status: appointmentData.status || "proposed",
@@ -299,7 +297,7 @@ export class ModMedClient {
     }
   }
 
-  private convertToFHIRObservation(observationData: ObservationInput): unknown {
+  private convertToFHIRObservation(observationData: any): any {
     return {
       resourceType: "Observation",
       status: "final",
@@ -347,74 +345,13 @@ export class ModMedClient {
 }
 
 // Helper function to get authenticated client
-export async function getModMedClient(id: string): Promise<ModMedClient> {
+export async function getModMedClient(): Promise<ModMedClient> {
   const client = new ModMedClient()
   try {
-    await client.authenticate(
-      process.env.MODMED_CLIENT_ID!,
-      process.env.MODMED_CLIENT_SECRET!
-    )
+    await client.authenticate()
     return client
   } catch (error) {
     console.error('Failed to authenticate with ModMed:', error)
     return client // Return client anyway for basic operations
   }
-}
-
-//Types to avoid type errors
-interface PatientData {
-  firstName: string
-  lastName: string
-  phone?: string
-  email?: string
-  gender?: "male" | "female" | "other" | "unknown"
-  dateOfBirth?: string
-  address?: {
-    street: string
-    city: string
-    state: string
-    zip: string
-  }
-  status?: "active" | "inactive"
-}
-interface FhirBundle<T> {
-  resourceType: "Bundle"
-  type: string
-  total?: number
-  entry?: {
-    fullUrl?: string
-    resource: T
-  }[]
-}
-
-interface PatientInput {
-  firstName: string
-  lastName: string
-  phone?: string
-  email?: string
-  gender?: "male" | "female" | "other" | "unknown"
-  dateOfBirth?: string
-  address?: {
-    street: string
-    city: string
-    state: string
-    zip: string
-  }
-  status?: "active" | "inactive"
-}
-interface AppointmentInput {
-  patientId: string
-  type?: string
-  reason?: string
-  dateTime: string
-  duration?: number
-  status?: string
-}
-
-interface ObservationInput {
-  patientId: string
-  recordedAt?: string
-  bloodPressureSystolic?: number
-  bloodPressureDiastolic?: number
-  heartRate?: number
 }
