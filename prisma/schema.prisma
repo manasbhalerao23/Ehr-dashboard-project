@@ -1,165 +1,45 @@
 generator client {
-  provider = "prisma-client-js"
+provider = "prisma-client-js"
 }
+
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+provider = "postgresql"
+url = env("DATABASE_URL")
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  password      String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          String    @default("user")
-  accounts      Account[]
-  sessions      Session[]
-  modmedTokens  ModmedToken?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+id String @id @default(cuid())
+email String @unique
+name String?
+password String // bcrypt hashed
+role String @default("user")
+createdAt DateTime @default(now())
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
 
-  @@unique([identifier, token])
+model Credential {
+id String @id @default(cuid())
+provider String // "modmed" | "athena"
+practiceId String? // relevant practice id or firm prefix
+encrypted String // encrypted blob (JSON string encrypted)
+createdAt DateTime @default(now())
 }
 
-model ModmedToken {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken  String   @db.Text
-  refreshToken String?  @db.Text
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+model AuditLog {
+id String @id @default(cuid())
+userId String?
+action String
+details String?
+createdAt DateTime @default(now())
 }
 
-model Patient {
-  id          String        @id @default(cuid())
-  modmedId    String        @unique
-  firstName   String
-  lastName    String
-  email       String?
-  phone       String?
-  dateOfBirth DateTime?
-  gender      String?
-  address     Json?
-  allergies   String[]
-  medications String[]
-  insurance   Json?
-  status      String        @default("active")
-  appointments Appointment[]
-  clinicalNotes ClinicalNote[]
-  vitalSigns  VitalSigns[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-}
 
-model Provider {
-  id          String        @id @default(cuid())
-  modmedId    String        @unique
-  firstName   String
-  lastName    String
-  email       String?
-  phone       String?
-  specialty   String?
-  licenseNumber String?
-  npi         String?
-  appointments Appointment[]
-  clinicalNotes ClinicalNote[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-}
-
-model Appointment {
-  id          String   @id @default(cuid())
-  modmedId    String?  @unique
-  patientId   String
-  patient     Patient  @relation(fields: [patientId], references: [id])
-  providerId  String
-  provider    Provider @relation(fields: [providerId], references: [id])
-  dateTime    DateTime
-  duration    Int      // in minutes
-  type        String
-  status      String   @default("scheduled")
-  reason      String?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model ClinicalNote {
-  id        String   @id @default(cuid())
-  patientId String
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  providerId String
-  provider  Provider @relation(fields: [providerId], references: [id])
-  title     String
-  content   String   @db.Text
-  type      String   @default("general")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model VitalSigns {
-  id                    String   @id @default(cuid())
-  patientId             String
-  patient               Patient  @relation(fields: [patientId], references: [id])
-  recordedAt            DateTime @default(now())
-  bloodPressureSystolic Int?
-  bloodPressureDiastolic Int?
-  heartRate             Int?
-  temperature           Float?
-  weight                Float?
-  height                Float?
-  respiratoryRate       Int?
-  oxygenSaturation      Int?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model Billing {
-  id             String   @id @default(cuid())
-  patientId      String
-  appointmentId  String?
-  amount         Decimal  @db.Decimal(10,2)
-  status         String   @default("pending")
-  insuranceClaimId String?
-  description    String
-  serviceDate    DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+model PatientCache {
+id String @id @default(cuid())
+patientId String @unique
+body Json
+updatedAt DateTime @updatedAt
 }
